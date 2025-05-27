@@ -5,7 +5,7 @@
 
 1. Clona el repositorio.
 
-    git clone <url-del-repositorio>
+    git clone https://github.com/Kunashgi/prueba-express-node.js
     cd todo-api-websockets
 
 2. Instala las dependencias:
