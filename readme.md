@@ -5,12 +5,18 @@
 
 1. Clona el repositorio.
 
+   ```bash
     git clone https://github.com/Kunashgi/prueba-express-node.js
+   ```
+2. Entrar a la carpeta:
 
+   ```bash
+   cd prueba-express-node.js
+   ```
 
 2. Instala las dependencias:
 
-   ```
+   ```bash
    npm install
    ```
 
