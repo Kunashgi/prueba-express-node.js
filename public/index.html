@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Tareas - Tiempo Real</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        textarea {
+            height: 80px;
+            resize: vertical;
+        }
+        
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        button.delete {
+            background-color: #dc3545;
+        }
+        
+        button.delete:hover {
+            background-color: #c82333;
+        }
+        
+        .tasks-container {
+            margin-top: 30px;
+        }
+        
+        .task {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .task.completada {
+            background: #d4edda;
+            border-color: #c3e6cb;
+        }
+        
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        
+        .task-title {
+            font-weight: bold;
+            font-size: 16px;
+            color: #333;
+            margin: 0;
+        }
+        
+        .task-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-pendiente {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-completada {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .task-description {
+            color: #666;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+        
+        .task-dates {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+        
+        .task-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .task-actions button {
+            padding: 6px 12px;
+            font-size: 12px;
+            margin: 0;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .status-indicator.connected {
+            background-color: #28a745;
+        }
+        
+        .status-indicator.disconnected {
+            background-color: #dc3545;
+        }
+        
+        .connection-status {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .connected {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background-color: #28a745;
+        }
+        
+        .notification.error {
+            background-color: #dc3545;
+        }
+        
+        .notification.info {
+            background-color: #17a2b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Lista de Tareas en Tiempo Real</h1>
+        
+        <div id="connectionStatus" class="connection-status disconnected">
+            <span class="status-indicator disconnected"></span>
+            Desconectado del servidor
+        </div>
+        
+        <form id="taskForm">
+            <div class="form-group">
+                <label for="titulo">Título de la tarea *</label>
+                <input type="text" id="titulo" name="titulo" required maxlength="100" placeholder="Ej: Completar informe mensual">
+            </div>
+            
+            <div class="form-group">
+                <label for="descripcion">Descripción (opcional)</label>
+                <textarea id="descripcion" name="descripcion" maxlength="500" placeholder="Detalles adicionales sobre la tarea..."></textarea>
+            </div>
+            
+            <button type="submit">➕ Agregar Tarea</button>
+        </form>
+        
+        <div class="tasks-container">
+            <h2>📋 Mis Tareas</h2>
+            <div id="tasksList">
+                <p style="text-align: center; color: #666;">Cargando tareas...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Inicializar Socket.IO
+        const socket = io();
+        
+        // Referencias DOM
+        const taskForm = document.getElementById('taskForm');
+        const tasksList = document.getElementById('tasksList');
+        const connectionStatus = document.getElementById('connectionStatus');
+        
+        // Estado de la aplicación
+        let tasks = [];
+        
+        // Manejo de conexión WebSocket
+        socket.on('connect', () => {
+            updateConnectionStatus(true);
+            showNotification('Conectado al servidor', 'success');
+            loadTasks();
+        });
+        
+        socket.on('disconnect', () => {
+            updateConnectionStatus(false);
+            showNotification('Desconectado del servidor', 'error');
+        });
+        
+        // Eventos WebSocket para actualizaciones en tiempo real
+        socket.on('newTask', (task) => {
+            tasks.unshift(task);
+            renderTasks();
+            showNotification('Nueva tarea agregada', 'info');
+        });
+        
+        socket.on('taskUpdated', (updateData) => {
+            const taskIndex = tasks.findIndex(task => task.id === updateData.id);
+            if (taskIndex !== -1) {
+                tasks[taskIndex].status = updateData.status;
+                tasks[taskIndex].fechaActualizacion = updateData.fechaActualizacion;
+                renderTasks();
+                showNotification('Tarea actualizada', 'info');
+            }
+        });
+        
+        socket.on('taskDeleted', (deleteData) => {
+            tasks = tasks.filter(task => task.id !== deleteData.id);
+            renderTasks();
+            showNotification('Tarea eliminada', 'info');
+        });
+        
+        // Manejo del formulario
+        taskForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(taskForm);
+            const taskData = {
+                titulo: formData.get('titulo').trim(),
+                descripcion: formData.get('descripcion').trim()
+            };
+            
+            try {
+                const response = await fetch('/tasks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(taskData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    taskForm.reset();
+                    showNotification('Tarea creada exitosamente', 'success');
+                } else {
+                    showNotification(result.error || 'Error al crear la tarea', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Error de conexión', 'error');
+            }
+        });
+        
+        // Cargar tareas iniciales
+        async function loadTasks() {
+            try {
+                const response = await fetch('/tasks');
+                const result = await response.json();
+                
+                if (result.success) {
+                    tasks = result.data;
+                    renderTasks();
+                } else {
+                    showNotification('Error al cargar tareas', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Error de conexión', 'error');
+            }
+        }
+        
+        // Actualizar estado de una tarea
+        async function updateTaskStatus(id, newStatus) {
+            try {
+                const response = await fetch(`/tasks/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    showNotification(result.error || 'Error al actualizar la tarea', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Error de conexión', 'error');
+            }
+        }
+        
+        // Eliminar una tarea
+        async function deleteTask(id) {
+            if (!confirm('¿Estás seguro de que quieres eliminar esta tarea?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/tasks/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    showNotification(result.error || 'Error al eliminar la tarea', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Error de conexión', 'error');
+            }
+        }
+        
+        // Renderizar la lista de tareas
+        function renderTasks() {
+            if (tasks.length === 0) {
+                tasksList.innerHTML = '<p style="text-align: center; color: #666;">No hay tareas aún. ¡Agrega tu primera tarea!</p>';
+                return;
+            }
+            
+            tasksList.innerHTML = tasks.map(task => `
+                <div class="task ${task.status}">
+                    <div class="task-header">
+                        <h3 class="task-title">${escapeHtml(task.titulo)}</h3>
+                        <span class="task-status status-${task.status}">${task.status}</span>
+                    </div>
+                    ${task.descripcion ? `<div class="task-description">${escapeHtml(task.descripcion)}</div>` : ''}
+                    <div class="task-dates">
+                        <strong>Creado:</strong> ${formatDate(task.fechaCreacion)} | 
+                        <strong>Actualizado:</strong> ${formatDate(task.fechaActualizacion)}
+                    </div>
+                    <div class="task-actions">
+                        ${task.status === 'pendiente' ? 
+                            `<button onclick="updateTaskStatus(${task.id}, 'completada')">✅ Completar</button>` :
+                            `<button onclick="updateTaskStatus(${task.id}, 'pendiente')">🔄 Reabrir</button>`
+                        }
+                        <button class="delete" onclick="deleteTask(${task.id})">🗑️ Eliminar</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Actualizar estado de conexión
+        function updateConnectionStatus(connected) {
+            const indicator = connectionStatus.querySelector('.status-indicator');
+            
+            if (connected) {
+                connectionStatus.className = 'connection-status connected';
+                connectionStatus.innerHTML = '<span class="status-indicator connected"></span>Conectado al servidor';
+            } else {
+                connectionStatus.className = 'connection-status disconnected';
+                connectionStatus.innerHTML = '<span class="status-indicator disconnected"></span>Desconectado del servidor';
+            }
+        }
+        
+        // Mostrar notificaciones
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 100);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 3000);
+        }
+        
+        // Utilidades
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('es-ES', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+    </script>
+</body>
+</html>
